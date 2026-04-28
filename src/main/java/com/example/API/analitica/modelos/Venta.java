@@ -1,46 +1,39 @@
 package com.example.API.analitica.modelos;
-import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
-import java.time.LocalDate;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "ventas")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class Venta {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Campos identicos a los del analitico Python
-    @Column(nullable = false)
     private String producto;
-
-    @Column(name = "precio_unitario", nullable = false)
-    private Integer precioUnitario;
-
-    @Column(nullable = false)
     private String talla;
-
-    @Column(nullable = false)
     private Integer cantidad;
-
-    @Column(nullable = false)
     private String vendedor;
-
-    @Column(nullable = false)
+    private Double precioUnitario;
     private Double total;
+    private String fecha;
+    private String estado; // Aquí guardamos lo que diga Python: LIMPIA o INVALIDA
 
-    @Column(nullable = false)
-    private LocalDate fecha;
-
-    // Estado despues de pasar por el analitico
-    // SUCIA = recien ingresada | LIMPIA = paso validacion | INVALIDA = no paso
-    @Column
-    private String estado;
+    // Getters y Setters (Necesarios para que Spring lea los datos)
+    public Long getId() { return id; }
+    public String getProducto() { return producto; }
+    public void setProducto(String producto) { this.producto = producto; }
+    public String getTalla() { return talla; }
+    public void setTalla(String talla) { this.talla = talla; }
+    public Integer getCantidad() { return cantidad; }
+    public void setCantidad(Integer cantidad) { this.cantidad = cantidad; }
+    public String getVendedor() { return vendedor; }
+    public void setVendedor(String vendedor) { this.vendedor = vendedor; }
+    public Double getPrecioUnitario() { return precioUnitario; }
+    public void setPrecioUnitario(Double precioUnitario) { this.precioUnitario = precioUnitario; }
+    public Double getTotal() { return total; }
+    public void setTotal(Double total) { this.total = total; }
+    public String getFecha() { return fecha; }
+    public void setFecha(String fecha) { this.fecha = fecha; }
+    public String getEstado() { return estado; }
+    public void setEstado(String estado) { this.estado = estado; }
 }

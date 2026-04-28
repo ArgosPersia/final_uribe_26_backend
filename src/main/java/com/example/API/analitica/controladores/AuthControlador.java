@@ -1,47 +1,45 @@
 package com.example.API.analitica.controladores;
 
-import com.example.API.analitica.modelos.DTOs.LoginRequest;
-import com.example.API.analitica.modelos.DTOs.LoginResponse;
-import com.example.API.analitica.modelos.DTOs.RegisterRequest;
-import com.example.API.analitica.modelos.DTOs.MensajeResponse;
-import com.example.API.analitica.modelos.DTOs.RecoverRequest;
+import com.example.API.analitica.modelos.DTOs;
 import com.example.API.analitica.servicios.AuthServicio;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 @RequestMapping("/api/auth")
-@RequiredArgsConstructor
 public class AuthControlador {
 
-    private final AuthServicio authServicio;
+    @Autowired
+    private AuthServicio authServicio;
 
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest req) {
-        LoginResponse respuesta = authServicio.login(req);
-        if (respuesta.getToken() == null) {
-            return ResponseEntity.status(401).body(respuesta);
-        }
-        return ResponseEntity.ok(respuesta);
-    }
-
+    // POST /api/auth/register
     @PostMapping("/register")
-    public ResponseEntity<MensajeResponse> registrar(@RequestBody RegisterRequest req) {
-        MensajeResponse respuesta = authServicio.registrar(req);
-        if (respuesta.getMessage().contains("ya existe")) {
-            return ResponseEntity.status(409).body(respuesta);
-        }
-        return ResponseEntity.status(201).body(respuesta);
+    public ResponseEntity<DTOs.ApiResponse> registrar(@RequestBody DTOs.RegisterRequest req) {
+        DTOs.ApiResponse resp = authServicio.registrar(req);
+        int status = resp.message.contains("exitosamente") ? 201 : 400;
+        return ResponseEntity.status(status).body(resp);
     }
 
+    // POST /api/auth/login
+    @PostMapping("/login")
+    public ResponseEntity<DTOs.ApiResponse> login(@RequestBody DTOs.LoginRequest req) {
+        DTOs.ApiResponse resp = authServicio.login(req);
+        int status = resp.token != null ? 200 : 401;
+        return ResponseEntity.status(status).body(resp);
+    }
+
+    // POST /api/auth/recover
     @PostMapping("/recover")
-    public ResponseEntity<MensajeResponse> recuperar(@RequestBody RecoverRequest req) {
-        MensajeResponse respuesta = authServicio.recuperar(req);
-        if (respuesta.getMessage().contains("No se encontró")) {
-            return ResponseEntity.status(404).body(respuesta);
-        }
-        return ResponseEntity.ok(respuesta);
+    public ResponseEntity<DTOs.ApiResponse> recuperar(@RequestBody DTOs.RecoverRequest req) {
+        DTOs.ApiResponse resp = authServicio.recuperar(req);
+        int status = resp.message.startsWith("Enlace") ? 200 : 404;
+        return ResponseEntity.status(status).body(resp);
+    }
+
+    // GET /api/auth/health  — útil para verificar que el servidor está vivo
+    @GetMapping("/health")
+    public ResponseEntity<String> health() {
+        return ResponseEntity.ok("Auth API operativa");
     }
 }
