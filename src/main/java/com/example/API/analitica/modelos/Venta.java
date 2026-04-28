@@ -16,9 +16,9 @@ public class Venta {
     private Double precioUnitario;
     private Double total;
     private String fecha;
-    private String estado; // Aquí guardamos lo que diga Python: LIMPIA o INVALIDA
+    private String estado;
 
-    // Getters y Setters (Necesarios para que Spring lea los datos)
+    // Getters y Setters
     public Long getId() { return id; }
     public String getProducto() { return producto; }
     public void setProducto(String producto) { this.producto = producto; }

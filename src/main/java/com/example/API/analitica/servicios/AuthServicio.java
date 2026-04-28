@@ -14,7 +14,7 @@ public class AuthServicio {
     @Autowired
     private UsuarioRepositorio usuarioRepo;
 
-    // ── Registro ─────────────────────────────────────────────────────────────
+    // Registro
     public DTOs.ApiResponse registrar(DTOs.RegisterRequest req) {
         if (req.nombre == null || req.nombre.isBlank())
             return new DTOs.ApiResponse("El nombre es obligatorio.");
@@ -29,14 +29,13 @@ public class AuthServicio {
         Usuario u = new Usuario();
         u.setNombre(req.nombre.trim());
         u.setCorreo(req.correo.toLowerCase().trim());
-        // Guardamos la contraseña tal cual (texto plano) para evitar errores de librerías
         u.setPassword(req.password);
         usuarioRepo.save(u);
 
         return new DTOs.ApiResponse("Cuenta creada exitosamente.");
     }
 
-    // ── Login ─────────────────────────────────────────────────────────────────
+    //  Login
     public DTOs.ApiResponse login(DTOs.LoginRequest req) {
         if (req.identifier == null || req.password == null)
             return new DTOs.ApiResponse("Complete todos los campos.");
@@ -48,14 +47,13 @@ public class AuthServicio {
             return new DTOs.ApiResponse("Usuario o correo no encontrado.");
 
         Usuario u = opt.get();
-        // Comparamos el texto directamente
         if (!req.password.equals(u.getPassword()))
             return new DTOs.ApiResponse("Contraseña incorrecta.");
 
         return new DTOs.ApiResponse("Acceso concedido.", "token-provisional-uni", u.getNombre());
     }
 
-    // ── Recuperar contraseña ──────────────────────────────────────────────────
+    // Recuperar contraseña
     public DTOs.ApiResponse recuperar(DTOs.RecoverRequest req) {
         if (req.correo == null || req.correo.isBlank())
             return new DTOs.ApiResponse("Ingrese su correo.");

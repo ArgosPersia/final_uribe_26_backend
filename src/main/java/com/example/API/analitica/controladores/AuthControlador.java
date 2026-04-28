@@ -37,7 +37,7 @@ public class AuthControlador {
         return ResponseEntity.status(status).body(resp);
     }
 
-    // GET /api/auth/health  — útil para verificar que el servidor está vivo
+    // GET /api/auth/health
     @GetMapping("/health")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("Auth API operativa");

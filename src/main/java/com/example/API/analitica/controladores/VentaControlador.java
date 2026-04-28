@@ -4,7 +4,7 @@ import com.example.API.analitica.modelos.Venta;
 import com.example.API.analitica.repositorios.VentaRepositorio;
 import com.example.API.analitica.servicios.VentaServicio;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity; // IMPORTANTE: Falta este import
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,7 +27,7 @@ public class VentaControlador {
 
     @PostMapping
     public Venta guardarVenta(@RequestBody Venta nuevaVenta) {
-        // Python ahora limpia y devuelve los datos bonitos (Jorge Perez, M, etc.)
+        //  devuelve los datos bien
         String estado = ventaServicio.validarConPython(nuevaVenta);
         nuevaVenta.setEstado(estado);
         return ventaRepo.save(nuevaVenta);
@@ -36,7 +36,7 @@ public class VentaControlador {
     // Método para limpiar el historial de la tabla H2
     @DeleteMapping("/borrar-todo")
     public ResponseEntity<Void> borrarHistorial() {
-        ventaRepo.deleteAll(); // Corregido: antes decía ventaRepositorio
+        ventaRepo.deleteAll();
         return ResponseEntity.ok().build();
     }
 }

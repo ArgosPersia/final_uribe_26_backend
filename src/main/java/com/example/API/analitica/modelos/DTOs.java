@@ -1,12 +1,12 @@
 package com.example.API.analitica.modelos;
 
-// ── DTOs exclusivos para autenticación ──────────────────────────────────────
+// DTO para autenticación
 
 public class DTOs {
 
     // Request para login
     public static class LoginRequest {
-        public String identifier; // puede ser nombre o correo
+        public String identifier;
         public String password;
     }
 

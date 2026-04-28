@@ -11,21 +11,20 @@ public class VentaServicio {
 
     public String validarConPython(Venta venta) {
         RestTemplate restTemplate = new RestTemplate();
-        // Puerto 8000 donde corre tu FastAPI
         String urlPython = "http://localhost:8000/analizar-venta";
 
         try {
-            // Enviamos la venta a Python y recibimos el mapa con los datos LIMPIOS
+            // Enviamos la venta a Python y recibimos el mapa con los datos limpios
             ResponseEntity<Map> respuesta = restTemplate.postForEntity(urlPython, venta, Map.class);
             Map<String, Object> resultado = respuesta.getBody();
 
             if (resultado != null && resultado.containsKey("estado")) {
-                // ACTUALIZAMOS los datos en Java con lo que Python limpió
+                // ACTUALIZAMOS los datos en Java con lo que Python mande limpio
                 venta.setVendedor(resultado.get("vendedor").toString());
                 venta.setTalla(resultado.get("talla").toString());
                 venta.setProducto(resultado.get("producto").toString());
 
-                // Si Python devolvió una cantidad corregida (ej. de 3.0 a 3)
+                // Si Python devolvió una cantidad corregida
                 if (resultado.containsKey("cantidad")) {
                     venta.setCantidad(Integer.parseInt(resultado.get("cantidad").toString()));
                 }

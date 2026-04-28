@@ -6,5 +6,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface VentaRepositorio extends JpaRepository<Venta, Long> {
-    // No necesitas escribir nada aquí, JpaRepository ya hace todo el trabajo
 }
