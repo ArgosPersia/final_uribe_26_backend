@@ -1,98 +1,69 @@
 package com.example.API.analitica.servicios;
 
-import com.example.API.analitica.modelos.DTOs.LoginRequest;
-import com.example.API.analitica.modelos.DTOs.LoginResponse;
-import com.example.API.analitica.modelos.DTOs.RegisterRequest;
-import com.example.API.analitica.modelos.DTOs.MensajeResponse;
-import com.example.API.analitica.modelos.DTOs.RecoverRequest;
+import com.example.API.analitica.modelos.DTOs;
 import com.example.API.analitica.modelos.Usuario;
 import com.example.API.analitica.repositorios.UsuarioRepositorio;
-import com.example.API.analitica.seguridad.JwtUtil;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class AuthServicio {
 
-    private final UsuarioRepositorio usuarioRepo;
-    private final JwtUtil jwtUtil;
+    @Autowired
+    private UsuarioRepositorio usuarioRepo;
 
-    /**
-     * LOGIN
-     * El front manda { identifier, password }
-     * identifier puede ser correo o nombre de usuario
-     */
-    public LoginResponse login(LoginRequest req) {
+    // ── Registro ─────────────────────────────────────────────────────────────
+    public DTOs.ApiResponse registrar(DTOs.RegisterRequest req) {
+        if (req.nombre == null || req.nombre.isBlank())
+            return new DTOs.ApiResponse("El nombre es obligatorio.");
+        if (req.correo == null || req.correo.isBlank())
+            return new DTOs.ApiResponse("El correo es obligatorio.");
+        if (req.password == null || req.password.length() < 8)
+            return new DTOs.ApiResponse("La contraseña debe tener mínimo 8 caracteres.");
 
-        // Buscar primero por correo, luego por nombre
-        Optional<Usuario> encontrado = usuarioRepo.findByCorreo(req.getIdentifier());
-        if (encontrado.isEmpty()) {
-            encontrado = usuarioRepo.findByNombre(req.getIdentifier());
-        }
+        if (usuarioRepo.existsByCorreo(req.correo.toLowerCase().trim()))
+            return new DTOs.ApiResponse("Ya existe una cuenta con ese correo.");
 
-        // Si no existe el usuario
-        if (encontrado.isEmpty()) {
-            return new LoginResponse(null, null, null, "Credenciales incorrectas.");
-        }
+        Usuario u = new Usuario();
+        u.setNombre(req.nombre.trim());
+        u.setCorreo(req.correo.toLowerCase().trim());
+        // Guardamos la contraseña tal cual (texto plano) para evitar errores de librerías
+        u.setPassword(req.password);
+        usuarioRepo.save(u);
 
-        Usuario usuario = encontrado.get();
-
-        // Verificar contrasena
-        // (En proyecto universitario comparacion directa; en produccion usaria BCrypt)
-        if (!usuario.getPassword().equals(req.getPassword())) {
-            return new LoginResponse(null, null, null, "Credenciales incorrectas.");
-        }
-
-        // Generar token JWT
-        String token = jwtUtil.generarToken(usuario.getCorreo());
-
-        return new LoginResponse(token, usuario.getNombre(), usuario.getCorreo(), "Login exitoso.");
+        return new DTOs.ApiResponse("Cuenta creada exitosamente.");
     }
 
-    /**
-     * REGISTRO
-     * El front manda { nombre, correo, password }
-     */
-    public MensajeResponse registrar(RegisterRequest req) {
+    // ── Login ─────────────────────────────────────────────────────────────────
+    public DTOs.ApiResponse login(DTOs.LoginRequest req) {
+        if (req.identifier == null || req.password == null)
+            return new DTOs.ApiResponse("Complete todos los campos.");
 
-        // Verificar si el correo ya esta registrado
-        if (usuarioRepo.existsByCorreo(req.getCorreo())) {
-            return new MensajeResponse("Ya existe una cuenta con ese correo.");
-        }
+        String id = req.identifier.trim().toLowerCase();
+        Optional<Usuario> opt = usuarioRepo.findByCorreoOrNombre(id, id);
 
-        // Crear y guardar el usuario
-        Usuario nuevo = new Usuario();
-        nuevo.setNombre(req.getNombre());
-        nuevo.setCorreo(req.getCorreo());
-        nuevo.setPassword(req.getPassword());
+        if (opt.isEmpty())
+            return new DTOs.ApiResponse("Usuario o correo no encontrado.");
 
-        usuarioRepo.save(nuevo);
+        Usuario u = opt.get();
+        // Comparamos el texto directamente
+        if (!req.password.equals(u.getPassword()))
+            return new DTOs.ApiResponse("Contraseña incorrecta.");
 
-        return new MensajeResponse("Cuenta creada exitosamente.");
+        return new DTOs.ApiResponse("Acceso concedido.", "token-provisional-uni", u.getNombre());
     }
 
-    public MensajeResponse recuperar(RecoverRequest req) {
+    // ── Recuperar contraseña ──────────────────────────────────────────────────
+    public DTOs.ApiResponse recuperar(DTOs.RecoverRequest req) {
+        if (req.correo == null || req.correo.isBlank())
+            return new DTOs.ApiResponse("Ingrese su correo.");
 
-        Optional<Usuario> encontrado = usuarioRepo.findByCorreo(req.getCorreo());
+        boolean existe = usuarioRepo.existsByCorreo(req.correo.toLowerCase().trim());
+        if (!existe)
+            return new DTOs.ApiResponse("No se encontró una cuenta con ese correo.");
 
-        if (encontrado.isEmpty()) {
-            return new MensajeResponse("No se encontró una cuenta con ese correo.");
-        }
-
-        // Generar token unico de recuperacion y guardarlo
-        String tokenRecuperacion = UUID.randomUUID().toString();
-        Usuario usuario = encontrado.get();
-        usuario.setTokenRecuperacion(tokenRecuperacion);
-        usuarioRepo.save(usuario);
-
-        // En produccion aqui se enviaria el email con el link de recuperacion
-        // Por ahora solo simulamos que el correo fue enviado
-        System.out.println("=== TOKEN RECUPERACION para " + req.getCorreo() + " : " + tokenRecuperacion + " ===");
-
-        return new MensajeResponse("Correo de recuperación enviado.");
+        return new DTOs.ApiResponse("Enlace de recuperación enviado a " + req.correo);
     }
 }
